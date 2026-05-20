@@ -33,8 +33,8 @@ Zports Frontend adalah aplikasi Single Page Application (SPA) e-commerce modern 
 
 ### 1. Kloning Repositori
 ```bash
-git clone https://github.com/USERNAME_ANDA/project-zports-frontend.git
-cd project-zports-frontend
+git clone https://github.com/USERNAME_ANDA/zports_frontend.git
+cd zports_frontend
 ```
 
 ### 2. Instalasi Dependensi
