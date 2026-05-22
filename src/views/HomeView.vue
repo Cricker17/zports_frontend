@@ -311,6 +311,9 @@ import BrandMarquee from '../components/BrandMarquee.vue'
 import Skeleton from '../components/Skeleton.vue'
 
 import api from '../services/api'
+import { useImageUrl } from '../composables/useImageUrl'
+import { useCountdown } from '../composables/useCountdown'
+import { unwrapResponse } from '../services/apiHelpers'
 
 const trendingProducts = ref<any[]>([])
 const newProducts = ref<any[]>([])
@@ -323,22 +326,7 @@ const loading = ref(true)
 const dealsBrand = ref<any>(null)
 const dealsProducts = ref<any[]>([])
 
-const hours = ref('11')
-const minutes = ref('59')
-const seconds = ref('59')
-
-const startCountdown = () => {
-  let totalSeconds = 12 * 3600 // 12 hours
-  setInterval(() => {
-    if (totalSeconds > 0) totalSeconds--
-    const h = Math.floor(totalSeconds / 3600)
-    const m = Math.floor((totalSeconds % 3600) / 60)
-    const s = totalSeconds % 60
-    hours.value = h.toString().padStart(2, '0')
-    minutes.value = m.toString().padStart(2, '0')
-    seconds.value = s.toString().padStart(2, '0')
-  }, 1000)
-}
+const { hours, minutes, seconds, start: startCountdown } = useCountdown({ durationSeconds: 12 * 3600 })
 
 const nextTesti = () => {
   if (testiIndex.value < testimonials.value.length - 3) {
@@ -364,11 +352,7 @@ const prevBrand = () => {
   }
 }
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 const faqs = ref([
   { q: 'How long does shipping take?', a: 'Standard shipping usually takes 3-5 business days.', open: false },
@@ -378,7 +362,7 @@ const faqs = ref([
 
 const getCatImage = (cat: any) => {
   if (cat.image) {
-    return `http://127.0.0.1:8000/storage/${cat.image}`
+    return getImageUrl(cat.image)
   }
   // Fallback for demo - Check woman first because it contains 'man'
   const name = cat.name.toLowerCase()
@@ -399,19 +383,19 @@ const loadData = async () => {
       api.get('/brands')
     ])
 
-    const products = prodRes.data?.data?.data ?? prodRes.data?.data ?? prodRes.data ?? []
+    const products = unwrapResponse(prodRes.data)
     trendingProducts.value = products.slice(0, 4)
 
-    const newProductsArr = newProdRes.data?.data?.data ?? newProdRes.data?.data ?? newProdRes.data ?? []
+    const newProductsArr = unwrapResponse(newProdRes.data)
     newProducts.value = newProductsArr.slice(0, 4)
 
     categories.value = catRes.data ?? []
     testimonials.value = testRes.data ?? []
 
-    const rawBrands = brandRes.data?.data ?? brandRes.data ?? []
+    const rawBrands = unwrapResponse(brandRes.data)
     brands.value = rawBrands.map((b: any) => ({
       ...b,
-      image: b.logo ? (b.logo.startsWith('http') ? b.logo : `http://127.0.0.1:8000/storage/${b.logo}`) : null
+      image: b.logo ? getImageUrl(b.logo) : null
     }))
 
     // Get More Deals: fetch from dedicated backend endpoint

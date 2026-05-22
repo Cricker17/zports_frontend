@@ -210,6 +210,9 @@ import { ui } from '../stores/ui'
 import { toast } from '../stores/toast'
 import Skeleton from '../components/Skeleton.vue'
 import ProductCard from '../components/ProductCard.vue'
+import { useImageUrl } from '../composables/useImageUrl'
+import { useAuth } from '../composables/useAuth'
+import { unwrapResponse } from '../services/apiHelpers'
 
 const route = useRoute()
 const product = ref<any>(null)
@@ -229,17 +232,12 @@ const scrollSlider = (direction: 'left' | 'right') => {
 }
 
 const reviews = ref<any[]>([])
-const isLoggedIn = ref(false)
+const { isLoggedIn } = useAuth()
 const newReview = ref({ rating: 5, comment: '' })
 const hoverRating = ref(0)
 const relatedProducts = ref<any[]>([])
 
-const getImageUrl = (imagePath: any) => {
-  if (!imagePath || typeof imagePath !== 'string') return '/src/assets/images/shoe3.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  const host = window.location.hostname === 'localhost' ? 'localhost' : '127.0.0.1'
-  return `http://${host}:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 const loadReviews = async () => {
   try {
@@ -254,7 +252,7 @@ const loadRelatedProducts = async () => {
   if (!product.value || !product.value.category_id) return
   try {
     const res = await api.get('/products', { params: { category: product.value.category_id, limit: 5 } })
-    let rps = res.data?.data?.data || res.data?.data || res.data || []
+    let rps = unwrapResponse(res.data)
     rps = rps.filter((p: any) => p.id !== product.value.id).slice(0, 4)
     relatedProducts.value = rps
   } catch (error) {
@@ -263,9 +261,6 @@ const loadRelatedProducts = async () => {
 }
 
 onMounted(async () => {
-  if (sessionStorage.getItem('auth_token')) {
-    isLoggedIn.value = true
-  }
 
   try {
     const res = await api.get(`/products/${route.params.id}`)

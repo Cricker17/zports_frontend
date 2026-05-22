@@ -135,6 +135,8 @@ import Skeleton from '../components/Skeleton.vue'
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../services/api'
+import { unwrapResponse } from '../services/apiHelpers'
+import { usePagination } from '../composables/usePagination'
 
 const route = useRoute()
 const router = useRouter()
@@ -247,14 +249,10 @@ const fetchProducts = async () => {
 
     clearTimeout(timeoutId)
 
-    const raw =
-      res.data?.data?.data ??
-      res.data?.data ??
-      res.data ??
-      []
+    const raw = unwrapResponse(res.data)
 
-    products.value = Array.isArray(raw) ? raw : []
-    currentPage.value = 1 // Reset to page 1 on new fetch
+    products.value = raw
+    resetPage()
 
   } catch (error) {
     clearTimeout(timeoutId)
@@ -267,15 +265,7 @@ const fetchProducts = async () => {
 }
 
 /* PAGINATION LOGIC */
-const currentPage = ref(1)
-const itemsPerPage = 12
-
-const totalPages = computed(() => Math.ceil(products.value.length / itemsPerPage))
-
-const paginatedProducts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return products.value.slice(start, start + itemsPerPage)
-})
+const { currentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(products, 12)
 
 /* FILTER EVENTS */
 const onCategoryChange = (val: any) => {

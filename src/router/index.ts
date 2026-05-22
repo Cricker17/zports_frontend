@@ -1,11 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '../views/HomeView.vue'
-import ShopView from '../views/ShopView.vue'
-import DetailView from '../views/DetailView.vue'
-import CartView from '../views/CartView.vue'
-import CheckoutView from '../views/CheckoutView.vue'
-import LoginView from '../views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,31 +14,31 @@ const router = createRouter({
     {
       path: '/shop',
       name: 'shop',
-      component: ShopView,
+      component: () => import('../views/ShopView.vue'),
       meta: { title: 'Shop All Products', description: 'Browse our full catalog of the latest sneaker releases and classics.' }
     },
     {
       path: '/product/:id',
       name: 'detail',
-      component: DetailView,
+      component: () => import('../views/DetailView.vue'),
       meta: { title: 'Product Details' }
     },
     {
       path: '/cart',
       name: 'cart',
-      component: CartView,
+      component: () => import('../views/CartView.vue'),
       meta: { title: 'Your Shopping Bag', description: 'Review your items and proceed to checkout.' }
     },
     {
       path: '/checkout',
       name: 'checkout',
-      component: CheckoutView,
+      component: () => import('../views/CheckoutView.vue'),
       meta: { title: 'Secure Checkout', description: 'Complete your purchase securely at ZPORTS.' }
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: () => import('../views/LoginView.vue'),
       meta: { title: 'Login to Your Account' }
     },
     {

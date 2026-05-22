@@ -106,16 +106,13 @@ import { ui } from '../stores/ui'
 import api from '../services/api'
 import Skeleton from './Skeleton.vue'
 import { toast } from '../stores/toast'
+import { useImageUrl } from '../composables/useImageUrl'
 
 const router = useRouter()
 const cartItems = ref<any[]>([])
 const loading = ref(false)
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 const subtotal = computed(() => {
   return cartItems.value.reduce((acc, item) => acc + (item.product.price * item.quantity), 0)

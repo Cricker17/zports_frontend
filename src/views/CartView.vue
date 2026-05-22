@@ -102,16 +102,15 @@ import api from '../services/api'
 import { ui } from '../stores/ui'
 import { toast } from '../stores/toast'
 import Skeleton from '../components/Skeleton.vue'
+import { useImageUrl } from '../composables/useImageUrl'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
 const cartItems = ref<any[]>([])
 const loading = ref(true)
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
+const { requireAuth } = useAuth()
 
 const loadCart = async () => {
   try {
@@ -125,10 +124,7 @@ const loadCart = async () => {
 }
 
 onMounted(() => {
-  if (!sessionStorage.getItem('auth_token')) {
-    router.push('/login')
-    return
-  }
+  if (!requireAuth()) return
   loadCart()
 })
 

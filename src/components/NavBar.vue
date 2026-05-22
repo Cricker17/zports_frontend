@@ -80,7 +80,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 My Wishlist
               </RouterLink>
-              <button class="dropdown-item logout" @click="logout">
+              <button class="dropdown-item logout" @click="handleLogout">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Logout
               </button>
@@ -134,10 +134,13 @@ import { ref, onMounted, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import api from '../services/api'
 import { ui } from '../stores/ui'
+import { useImageUrl } from '../composables/useImageUrl'
+import { useAuth } from '../composables/useAuth'
+import { unwrapResponse } from '../services/apiHelpers'
 
 const router = useRouter()
 
-const isLoggedIn = ref(false)
+const { isLoggedIn, logout } = useAuth()
 const userName = ref('')
 const userProfilePic = ref('')
 const isSearchOpen = ref(false)
@@ -173,15 +176,13 @@ onMounted(async () => {
   ui.fetchCartCount()
   const token = sessionStorage.getItem('auth_token')
   if (token) {
-    isLoggedIn.value = true
     try {
       const res = await api.get('/user')
       userName.value = res.data.name
       userProfilePic.value = res.data.profile_picture
     } catch (e) {
       // Token invalid
-      sessionStorage.removeItem('auth_token')
-      isLoggedIn.value = false
+      logout()
     }
   }
 })
@@ -206,18 +207,14 @@ const handleSearchInput = () => {
 const fetchSuggestions = async () => {
   try {
     const res = await api.get('/products', { params: { search: searchQuery.value } })
-    const data = res.data?.data?.data || res.data?.data || res.data || []
+    const data = unwrapResponse(res.data)
     suggestions.value = data.slice(0, 5)
   } catch (e) {
     console.error(e)
   }
 }
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 const goToProduct = (id: number) => {
   router.push(`/product/${id}`)
@@ -226,16 +223,16 @@ const goToProduct = (id: number) => {
   searchQuery.value = ''
 }
 
-const logout = async () => {
+// logout is handled by useAuth, but we still need to clear local state
+// Wait, the template calls `logout` directly. Let's wrap it to clear local state.
+const handleLogout = async () => {
   try {
     await api.post('/auth/logout')
   } catch (e) {}
-  sessionStorage.removeItem('auth_token')
-  isLoggedIn.value = false
+  logout()
   userName.value = ''
   userProfilePic.value = ''
   isProfileDropdownOpen.value = false
-  router.push('/')
 }
 
 // Close suggestions when search closes

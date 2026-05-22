@@ -199,6 +199,9 @@ import api from '../services/api'
 import { ui } from '../stores/ui'
 import { toast } from '../stores/toast'
 import Skeleton from '../components/Skeleton.vue'
+import { useImageUrl } from '../composables/useImageUrl'
+import { useAuth } from '../composables/useAuth'
+import { usePagination } from '../composables/usePagination'
 
 const router = useRouter()
 const user = ref<any>(null)
@@ -220,17 +223,11 @@ const filteredOrders = computed(() => {
   })
 })
 
-const currentPage = ref(1)
-const itemsPerPage = 5
-const totalPages = computed(() => Math.ceil(filteredOrders.value.length / itemsPerPage))
-const paginatedOrders = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return filteredOrders.value.slice(start, start + itemsPerPage)
-})
+const { currentPage, totalPages, paginatedItems: paginatedOrders, resetPage } = usePagination(filteredOrders, 5)
 
 // Reset to page 1 when search changes
 watch(orderSearch, () => {
-  currentPage.value = 1
+  resetPage()
 })
 
 // Removed avatar upload refs
@@ -241,11 +238,8 @@ const reviewRating = ref(5)
 const reviewComment = ref('')
 const isSubmittingReview = ref(false)
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
+const { requireAuth, logout } = useAuth()
 
 const loadProfileData = async () => {
   loading.value = true
@@ -305,16 +299,8 @@ const submitReview = async () => {
   }
 }
 
-const logout = () => {
-  sessionStorage.removeItem('auth_token')
-  window.location.href = '/'
-}
-
 onMounted(() => {
-  if (!sessionStorage.getItem('auth_token')) {
-    router.push('/login')
-    return
-  }
+  if (!requireAuth()) return
   loadProfileData()
 })
 </script>

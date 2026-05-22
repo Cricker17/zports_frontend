@@ -189,6 +189,7 @@ import { useRouter } from 'vue-router'
 import api from '../services/api'
 import { ui } from '../stores/ui'
 import { toast } from '../stores/toast'
+import { useImageUrl } from '../composables/useImageUrl'
 
 const router = useRouter()
 const loading = ref(false)
@@ -207,11 +208,7 @@ const form = ref({
   sub_payment_method: ''
 })
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 // PRICE CALCULATIONS
 const rawSubtotal = computed(() => {

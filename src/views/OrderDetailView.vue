@@ -123,17 +123,14 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import api from '../services/api'
 import { ui } from '../stores/ui'
 import { toast } from '../stores/toast'
+import { useImageUrl } from '../composables/useImageUrl'
 
 const route = useRoute()
 const router = useRouter()
 const order = ref<any>(null)
 const loading = ref(true)
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('en-US', {

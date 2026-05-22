@@ -70,6 +70,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 import { toast } from '../stores/toast'
+import { useImageUrl } from '../composables/useImageUrl'
 
 const router = useRouter()
 const loading = ref(false)
@@ -86,11 +87,7 @@ const form = ref({
 const fileInput = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
 
-const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `http://127.0.0.1:8000/storage/${imagePath}`
-}
+const { getImageUrl } = useImageUrl()
 
 onMounted(async () => {
   window.addEventListener('paste', handlePaste)

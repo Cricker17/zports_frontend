@@ -10,15 +10,15 @@
           
           <div class="countdown">
             <div class="time-box">
-              <span>{{ countdown.hours }}</span>
+              <span>{{ hours }}</span>
               <p>Hours</p>
             </div>
             <div class="time-box">
-              <span>{{ countdown.minutes }}</span>
+              <span>{{ minutes }}</span>
               <p>Mins</p>
             </div>
             <div class="time-box">
-              <span>{{ countdown.seconds }}</span>
+              <span>{{ seconds }}</span>
               <p>Secs</p>
             </div>
           </div>
@@ -73,51 +73,25 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import ProductCard from '../components/ProductCard.vue'
 import Skeleton from '../components/Skeleton.vue'
 import api from '../services/api'
+import { unwrapResponse } from '../services/apiHelpers'
+import { usePagination } from '../composables/usePagination'
+import { useCountdown } from '../composables/useCountdown'
 
 const discountedProducts = ref<any[]>([])
 const loading = ref(true)
 
-const countdown = ref({
-  hours: '00',
-  minutes: '00',
-  seconds: '00'
-})
-
-let timerInterval: any = null
-
-const startCountdown = () => {
-  // Set end time to end of today for demonstration
-  const endTime = new Date()
-  endTime.setHours(23, 59, 59)
-
-  timerInterval = setInterval(() => {
-    const now = new Date().getTime()
-    const distance = endTime.getTime() - now
-
-    if (distance < 0) {
-      clearInterval(timerInterval)
-      return
-    }
-
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000)
-
-    countdown.value = {
-      hours: hours.toString().padStart(2, '0'),
-      minutes: minutes.toString().padStart(2, '0'),
-      seconds: seconds.toString().padStart(2, '0')
-    }
-  }, 1000)
-}
+// Set end time to end of today for demonstration
+const endTime = new Date()
+endTime.setHours(23, 59, 59)
+const { hours, minutes, seconds, start: startCountdown } = useCountdown({ targetDate: endTime })
 
 const loadSaleProducts = async () => {
   loading.value = true
   try {
     const res = await api.get('/products', { params: { on_sale: 1 } })
-    const all = res.data?.data?.data ?? res.data?.data ?? res.data ?? []
-    discountedProducts.value = Array.isArray(all) ? all : []
-    currentPage.value = 1 // Reset on new data
+    const all = unwrapResponse(res.data)
+    discountedProducts.value = all
+    resetPage() // Reset on new data
   } catch (e) {
     console.error('Failed to load sale products')
   } finally {
@@ -126,15 +100,7 @@ const loadSaleProducts = async () => {
 }
 
 /* PAGINATION LOGIC */
-const currentPage = ref(1)
-const itemsPerPage = 12
-
-const totalPages = computed(() => Math.ceil(discountedProducts.value.length / itemsPerPage))
-
-const paginatedProducts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return discountedProducts.value.slice(start, start + itemsPerPage)
-})
+const { currentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(discountedProducts, 12)
 
 onMounted(() => {
   loadSaleProducts()
@@ -142,7 +108,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (timerInterval) clearInterval(timerInterval)
 })
 </script>
 

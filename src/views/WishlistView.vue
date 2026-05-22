@@ -104,27 +104,17 @@ import api from '../services/api'
 import { ui } from '../stores/ui'
 import { toast } from '../stores/toast'
 import Skeleton from '../components/Skeleton.vue'
+import { useImageUrl } from '../composables/useImageUrl'
+import { useAuth } from '../composables/useAuth'
+import { usePagination } from '../composables/usePagination'
 
 const router = useRouter()
 const wishlistItems = ref<any[]>([])
 const loading = ref(true)
 
-const getImageUrl = (imagePath: any) => {
-  if (!imagePath || typeof imagePath !== 'string') return '/src/assets/images/shoe1.jpg'
-  if (imagePath.startsWith('http')) return imagePath
-  const host = window.location.hostname === 'localhost' ? 'localhost' : '127.0.0.1'
-  return `http://${host}:8000/storage/${imagePath}`
-}
-
-const itemsPerPage = 5
-const currentPage = ref(1)
-
-const totalPages = computed(() => Math.ceil(wishlistItems.value.length / itemsPerPage))
-
-const paginatedWishlist = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return wishlistItems.value.slice(start, start + itemsPerPage)
-})
+const { getImageUrl } = useImageUrl()
+const { requireAuth } = useAuth()
+const { currentPage, totalPages, paginatedItems: paginatedWishlist, clampPage } = usePagination(wishlistItems, 5)
 
 const loadWishlist = async () => {
   try {
@@ -135,9 +125,7 @@ const loadWishlist = async () => {
       selectedSize: ''
     }))
     // Reset to page 1 if data changes significantly or if current page becomes empty
-    if (currentPage.value > totalPages.value && totalPages.value > 0) {
-      currentPage.value = totalPages.value
-    }
+    clampPage()
   } catch (e) {
     console.error('Failed to load wishlist')
   } finally {
@@ -146,10 +134,7 @@ const loadWishlist = async () => {
 }
 
 onMounted(() => {
-  if (!sessionStorage.getItem('auth_token')) {
-    router.push('/login')
-    return
-  }
+  if (!requireAuth()) return
   loadWishlist()
 })
 
