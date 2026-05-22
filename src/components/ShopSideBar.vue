@@ -504,6 +504,7 @@ li.active {
 .price-slider {
   width: 100%;
   -webkit-appearance: none;
+  appearance: none;
   height: 6px;
   background: var(--color-background-mute);
   border-radius: 10px;
@@ -512,6 +513,7 @@ li.active {
 
 .price-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   width: 20px;
   height: 20px;
   background: var(--primary);

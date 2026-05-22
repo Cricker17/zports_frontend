@@ -464,7 +464,6 @@ onMounted(() => {
 }
 
 /* CATEGORY */
-.category-section {}
 
 .category-grid {
   display: grid;
@@ -520,7 +519,6 @@ onMounted(() => {
 }
 
 /* BRAND GRID */
-.brand-grid-section {}
 
 .brand-grid {
   display: grid;
@@ -569,7 +567,6 @@ onMounted(() => {
 }
 
 /* PRODUCT */
-.products-section {}
 
 .product-grid {
   display: grid;
@@ -830,6 +827,9 @@ onMounted(() => {
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
@@ -891,6 +891,7 @@ onMounted(() => {
 
   display: -webkit-box;
   -webkit-line-clamp: 5;
+  line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 20px;
@@ -900,9 +901,6 @@ onMounted(() => {
   white-space: normal;
 }
 
-.testi-card:hover p {
-  /* color: var(--color-heading); */
-}
 
 /* User */
 .user {
